@@ -2,16 +2,19 @@ import React from 'react';
 import { Form, Grid, Image, Container, Divider, Header, Button } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import Dropzone from 'react-dropzone';
+import { updateUser } from '../actions/user';
+import Tags from './Tags';
 
 const Fragment = React.Fragment;
 
 // might be harder to make a differnt url route form/page to edit user info if teh user info is coming through react in state.
 // but its about the same to make a different route as a toggle form if the user data is in redux
 
-const defaultImage = 'https://d30y9cdsu7xlg0.cloudfront.net/png/15724-200.png'
+// NO LONGER NEED THIS../bc of migration
+// const defaultImage = 'https://d30y9cdsu7xlg0.cloudfront.net/png/15724-200.png'
 
 class Profile extends React.Component {
-  state = { editing: false, formValues: { name: '', email: '', gamertag: '' }, }
+  state = { editing: false, formValues: { name: '', email: '', gamertag: '', file: '' }, }
   // because the state for user info is inside of an object, we have to rethink the handleChang function
 
   componentDidMount() {
@@ -38,7 +41,12 @@ class Profile extends React.Component {
   }
 
   handleSubmit = (e) => {
-
+    e.preventDefault();
+    const { formValues: { name, email, file, gamertag }} = this.state;
+    const { user, dispatch } = this.props;
+    dispatch(updateUser(user.id, { name, email, file, gamertag }))
+    this.setState({ editing: false, formValues: { ...this.state.formValues, file: '' } })
+    //dispatch is always sending to an action
   }
 
   profileView = () => {
@@ -46,7 +54,7 @@ class Profile extends React.Component {
     return (
       <Fragment>
         <Grid.Column width={4}>
-          <Image src={user.image || defaultImage} />
+          <Image src={user.image} /> {/*  || defaultImage  ... took this out bc of migration, the default image is done automatically*/}
         </Grid.Column>
         <Grid.Column width={8}>
           <Header as="h1">{user.name}</Header>
@@ -58,13 +66,26 @@ class Profile extends React.Component {
     )
   }
 
+  onDrop = (files) => {
+    this.setState({ formValues: { ...this.state.formValues, file: files[0] } })
+    // this 0 only takes in 1 file, meaning it only grabs the first off the array
+  }
+
   editView = () => {
-    const { formValues: { name, email, gamertag } } = this.state
+    const { formValues: { name, email, gamertag, file } } = this.state
     return (
       <Form onSubmit={this.handleSubmit}>
         <Grid.Column width={4}>
+          <Dropzone
+            onDrop={this.onDrop}
+            multiple={false}
+            // takes lots of props you can add here. onDrop is the most important
+            // then need to write teh onDrop funciton.
+          >
+            {file && <Image src={file.preview} /> }
+          </Dropzone>
         </Grid.Column>
-        <Grid.Column>
+        <Grid.Column width={8}>
           <Form.Input
             label="Name"
             name="name"
@@ -107,6 +128,9 @@ class Profile extends React.Component {
                 {/* because not passing anythign in we don't need to do toggleEdit() */}
                 { editing ? 'Cancel' : 'Edit' }
               </Button>
+            </Grid.Column>
+            <Grid.Column width={16}>
+              <Tags />
             </Grid.Column>
           </Grid.Row>
         </Grid>
