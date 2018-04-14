@@ -50,8 +50,12 @@ class Api::UsersController < Api::ApiController
         obj = s3.bucket(s3_bucket).object("avatars/#{user.id}#{ext}")
         obj.upload_file(file.tempfile, acl: 'public-read')
         user.image = obj.public_url
-      end
-      if user.save
+        if user.save
+          render json: user
+        else
+          handle_error(user) 
+        end
+      elsif user.save
         render json: user
       else
         handle_error(user)

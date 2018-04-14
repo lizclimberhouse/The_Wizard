@@ -44,12 +44,12 @@ class TagList extends React.Component {
     const { users, total_pages } = this.props;
     const { page } = this.state;
     return (
-      <div style={styles.container}>
+      <div>
         <InfiniteScroll
           loadMore={this.loadUsers}
           hasMore={page < total_pages}
           loader={<div className="loader">Loading ...</div>}
-          useWindow={false}
+          useWindow={true}
         >
           <Card.Group itemsPerRow={3}>
             { users.map( user => <UserCard key={user.id} user={user} /> ) }
